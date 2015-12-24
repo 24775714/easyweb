@@ -1,0 +1,167 @@
+<div id="grid{{id}}" style="width: 100%; height: 100%;"></div>
+<script type="text/javascript">
+$(function (){  
+	//$.ajaxSetup ({cache:false});
+	$('#grid{{id}}').w2grid({
+        //header:'菜单管理',
+        name: 'grid{{id}}',
+        msgDelete: 'Delete?',
+        url: {
+        	get : '/data/get/{{table}}',
+        	remove : '/data/delete/{{table}}',
+        	save : '/data/save/{{table}}'
+        },
+        show: {
+            //header      : true,
+            toolbar     : true,
+            footer      : true,
+            toolbarAdd   : true,
+			toolbarDelete: true,
+			toolbarEdit  : true,
+            lineNumbers : true,
+            selectColumn: true
+        },
+        limit 	: 15,
+        searches: [
+            { field: 'sidebar_text', caption: '菜单名称', type: 'text' },
+            { field: 'web_template', caption: 'web模板', type: 'text' },
+        ],
+        sortData: [ { field: 'recid', direction: 'asc' } ],
+        columns: [
+            { field: 'recid', caption: 'ID', size: '30px', sortable: true },
+            { field: 'sidebar_code', caption: '菜单编码', size: '10%', sortable: true, resizable: true},
+            { field: 'sidebar_text', caption: '菜单名称', size: '20%', sortable: true, resizable: true },
+            { field: 'sidebar_img', caption: '菜单图形', size: '10%', resizable: true },
+            { field: 'expanded', caption: '展开状态', size: '5%', resizable: true   },
+            { field: 'prant_code', caption: '父菜单', size: '5%', sortable: true, resizable: true  },
+            { field: 'web_template', caption: 'web模板', size: '12%', resizable: true  },
+            { field: 'tablename', caption: '数据表映射', size: '15%', resizable: true  },
+            { field: 'sort_number', caption: '优先级', size: '4%', sortable: true, resizable: true  },
+            { field: 'sidebarstate', caption: '菜单状态', size: '5%', sortable: true, resizable: true  },
+        ],
+        onAdd: function (event) {
+			w2popup.open({
+				title 	: 'add new item information',
+				width	: 500,
+				height	: 500,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.clear();
+						fromobj.url='/data/add/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['grid{{id}}'].reload();
+					}
+				}
+			});
+					
+		},
+		onEdit: function (event) {
+			$().w2destroy('popup{{id}}');	
+			var record = this.get(event.recid);			
+			w2popup.open({
+				title 	: 'edit item information',
+				width	: 500,
+				height	: 500,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.clear();
+						fromobj.record={
+							recid : record.recid,
+							sidebar_code	: record.sidebar_code,
+							sidebar_text	: record.sidebar_text,
+							sidebar_img	: record.sidebar_img,
+							expanded	: record.expanded,
+							prant_code	: {id:record.prant_code,text:record.prant_code},
+							web_template: record.web_template,
+							tablename 	: record.tablename,
+							sort_number :record.sort_number,
+							sidebarstate : record.sidebarstate
+						};
+						fromobj.url='/data/edit/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['grid{{id}}'].reload();
+						w2ui['sidebar'].refresh();
+						//w2ui['sidebar'].disable('JCM00');
+					}
+				}
+			});
+		},
+		onDeleted: function (event) {			
+			this.reload();
+		},
+		onDestroy: function(event) {
+		}
+		
+   });    
+   
+   $().w2form({
+   		name: 'form{{id}}',
+		fields: [
+			{ name: 'recid', type: 'text',  html:{attr:'readonly',caption:'ID'}  },
+			{ name: 'sidebar_code', type: 'text', required: true ,html:{ caption:'菜单编码'}},
+			{ name: 'sidebar_text', type: 'text', required: true ,html:{ caption:'菜单名称'}},
+			{ name: 'sidebar_img', type: 'list', required: true ,html:{ caption:'菜单图标'},
+				options: {
+					items:['icon-folder','icon-page'],
+				}
+			},
+			{ name: 'expanded', type: 'list', 
+				options: {
+					items:[{id:'true',text:'true'},{id:'false',text:'false'}],
+					showNone: true
+				} ,html:{ caption:'打开状态'}
+			},
+			{ name: 'prant_code', type:'list',
+				options: {
+					url : '/DataForm/psidebar',
+					items:[],
+				},html:{ caption:'上级菜单'}	
+			},			
+			{ name: 'web_template', type: 'text',html:{ caption:'web模板'}},
+			{ name: 'tablename', type: 'text',html:{ caption:'数据表映射key'} },
+			{ name: 'sort_number', type: 'int' ,html:{ caption:'菜单顺序'}},
+			{ name: 'sidebarstate', type: 'list' ,html:{ caption:'菜单状态'}, required: true,options: {	items:['N','Y'],}},
+		],
+		actions: {
+			"save": function () { 
+					this.validate();
+					this.save();
+					},
+			"cancel": function () { 
+				this.clear(); 
+				$().w2popup('close'); 
+			},
+		} 
+   });
+   
+});  
+
+</script>

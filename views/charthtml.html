@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script type="text/javascript" src="/js/jquery-2.1.1.min.js"></script>
+    <script type="text/javascript"  src="/js/tinymce/tinymce.min.js"></script>
+   
+<script>
+tinymce.init({
+    selector: "textarea#elm1",
+    theme: "modern",
+    mode : "textareas",
+    plugins: [
+         "advlist autolink lists link image charmap print preview hr anchor pagebreak",
+        "searchreplace wordcount visualblocks visualchars code fullscreen",
+        "insertdatetime media nonbreaking save table contextmenu directionality",
+        "emoticons template paste textcolor moxiemanager"
+   ],
+   toolbar: "insertfile undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | l      ink image | print preview media fullpage | forecolor backcolor emoticons", 
+   save_enablewhendirty: true,
+   save_onsavecallback: function() {
+   	alert("Save");
+  },
+   save_oncancelcallback: function(){ alert("canlce");}
+ });
+</script>
+
+</head>
+
+<form method="post">
+    <textarea id="elm1" name="area"></textarea>
+</form>
+</html>

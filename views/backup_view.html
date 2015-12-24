@@ -1,0 +1,21 @@
+<div id="form{{id}}" > </div>
+<script type="text/javascript">
+$('#form{{id}}').w2form({ 
+	name     : 'form{{id}}',
+	url      : 'database/backup', 
+	fields: [
+		{ name: 'field_list', type: 'list', required: true, 
+			options: { items: ['backup', 'recover'] } },
+		{ name: 'filename', type: 'file'},
+		{ name: 'field_textarea', type: 'text'}
+	],
+	actions: {
+		reset: function () {
+			this.clear();
+		},
+		save: function () {
+			this.save();
+		}
+	}
+});
+</script>

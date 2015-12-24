@@ -1,0 +1,43 @@
+<div id="grid{{id}}" style="width: 100%; height: 100%;"></div>
+<div id='temp' style="display:none" >{{columns}}</div>
+<script type="text/javascript">
+
+$(function (){
+    $('#grid{{id}}').w2grid({
+        header:'年度消费报表明细',
+        name: 'grid{{id}}',
+        routeData: { id: '{{table}}' },
+        url: {
+            get : '/descreport/:id'
+        },
+        show: {
+            header      : true,
+            toolbar     : true,
+            footer      : true,
+            lineNumbers : true,
+            //selectionBorder: true, 
+            //selectColumn: true
+        },
+        searches: [
+            { field: 'consume_date', caption: '消费月份', type: 'text' },
+        ],
+        columnGroups : [
+            { span: 1, caption: '', master: true },				
+			{ span: 1, caption: '', master: true },
+			{ span: 3, caption: '必选日常消费' },
+			{ span: 1, caption: '', master: true },
+            { span: 2, caption: '房屋消费' },
+            { span: 2, caption: '儿童消费'},
+            { span: 4, caption: '可选日常消费'},
+			{ span: 1, caption: '', master: true },			
+        ],
+        columns: eval('(' + $('#temp').text() + ')'),
+        onDestroy: function(event) {
+		}
+   });
+   
+});
+
+
+
+</script>

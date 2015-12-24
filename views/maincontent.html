@@ -1,0 +1,40 @@
+<!-- -->
+<div style="width: 450px; height: 200px;float: left;">
+    <video poster="/images/poster.jpg" width="450" height="450" controls preload>
+        <source src="/video/video.mp4" media="only screen and (min-device-width: 568px)"></source>
+    </video>
+</div>
+
+<div style="margin-left: 500px;">
+
+		<b>年消费图表</b><br>
+		<br>
+    <canvas id="myChart" width="600" height="400"></canvas>
+</div>
+<script>
+var data = {
+	labels : ["January","February","March","April","May","June","July"],
+	datasets : [
+		{
+			fillColor : "rgba(220,220,220,0.5)",
+			strokeColor : "rgba(220,220,220,1)",
+			pointColor : "rgba(220,220,220,1)",
+			pointStrokeColor : "#fff",
+			data : [65,59,90,81,56,55,40]
+		},
+		{
+			fillColor : "rgba(151,187,205,0.5)",
+			strokeColor : "rgba(151,187,205,1)",
+			pointColor : "rgba(151,187,205,1)",
+			pointStrokeColor : "#fff",
+			data : [28,48,40,19,96,27,100]
+		}
+	]
+};
+
+$(function () {
+	var ctx = $("#myChart").get(0).getContext("2d");
+    var myNewChart = new Chart(ctx).Line(data);
+});
+</script>
+

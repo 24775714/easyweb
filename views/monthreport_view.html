@@ -1,0 +1,250 @@
+<div id="grid{{id}}" style="width: 100%; height: 100%;"></div>
+<script type="text/javascript">
+$(function (){
+    //$.ajaxSetup ({cache:false});
+    $('#grid{{id}}').w2grid({
+        //header:'月结帐详单',
+        name: 'grid{{id}}',
+        msgDelete: 'Delete?',
+        url: {
+            get : '/data/get/{{table}}',
+            remove : '/data/delete/{{table}}',
+            save : '/data/save/{{table}}'
+        },
+        show: {
+            //header      : true,
+            toolbar     : true,
+            footer      : true,
+            //toolbarAdd   : true,
+            toolbarDelete: true,
+            toolbarEdit  : true,
+            lineNumbers : true,
+            selectColumn: true
+        },
+        toolbar: {
+            items: [
+                { type: 'break' },
+                { type: 'button', id: 'mybutton', caption: '月结消费生成报表', img: 'icon-save' },
+                { type: 'break' },
+                { type: 'spacer' },
+                { type: 'break' },
+                { type: 'radio',  id: 'pie',  group: '1', caption: '饼图', icon: 'icon-page'},
+				{ type: 'radio',  id: 'line',  group: '1', caption: '线型图', icon: 'icon-page'},
+				{ type: 'radio',  id: 'bar',  group: '1', caption: '柱状图', icon: 'icon-page' , checked: true  },
+                { type: 'button', id: 'chartbutton', caption: '消费图表分析', img: 'icon-folder' },
+            ],
+            onClick: function (event) {
+            	var griddate = w2ui['grid{{id}}'];   
+                if (event.target == 'chartbutton'){
+                    var lenthgs = griddate.records.length;
+                    var date0 = new Array();
+                    var date1 = new Array();
+                    var datelab = new Array();
+                    var datelab1 = new Array();
+                    var datelab2 = new Array();
+                    var charttitle;
+                    var chartdatepie = new Array();  // 饼图结果
+                    for (w = 0; w < lenthgs ; w++ ){
+                    	var row = griddate.records[w];
+                        date0[w] =  row.fee;
+                        date1[w] =  row.prefee;
+                        datelab1[w] = row.consume_date;
+                        datelab2[w] = row.class_name;
+                        chartdatepie[w] = {value: row.fee,color:"#F38630"};
+                    }
+                    if (lenthgs>=2 && datelab2[0]==datelab2[1]){
+                    	datelab = datelab1;
+                    	charttitle =datelab2[0];
+                    	
+                    }else {
+                    	datelab = datelab2;
+                    	charttitle =datelab1[0]+' 消费数据';
+                    }
+                    var chartdata = {
+                                labels :datelab ,
+                                datasets : [
+                                    {
+                                        fillColor : "rgba(220,220,220,0.5)",
+                                        strokeColor : "rgba(220,220,220,1)",
+                                        pointColor : "rgba(220,220,220,1)",
+                                        pointStrokeColor : "#fff",
+                                        data : date1
+                                    },
+                                    {
+                                        fillColor : "rgba(151,187,205,0.5)",
+                                        strokeColor : "rgba(151,187,205,1)",
+                                        pointColor : "rgba(151,187,205,1)",
+                                        pointStrokeColor : "#fff",
+                                        data : date0
+                                    }
+                                ]
+                    };
+                    w2popup.open({
+                        title   : charttitle,
+                        width   : 800,
+                        height  : 600,
+                        showMax : true,
+                        modal    : true,
+                        body    : '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"><canvas id="chart{{id}}" width="750px" height="500px"></canvas></div>',
+                        onOpen  : function (event) {
+                            event.onComplete = function () {  
+                            	var ctx = $("#chart{{id}}").get(0).getContext("2d");
+                            	var myNewChart;         					                               
+                   				if(griddate.toolbar.get('line').checked){                   					
+                   					myNewChart = new Chart(ctx).Line(chartdata);                   					
+                   				}
+                   				else if (griddate.toolbar.get('bar').checked){
+                   					myNewChart = new Chart(ctx).Bar(chartdata);
+                   				}
+                   				else if (griddate.toolbar.get('pie').checked){
+                   					myNewChart = new Chart(ctx).Pie(chartdatepie);
+                   				}
+                   				else{
+                   				
+                   				}
+                               // $('#w2ui-popup #popup{{id}}').w2render(myNewChart);
+                            };
+                        },
+                        onToggle : function (event) {
+                            event.onComplete = function () { w2ui.layout.resize();}
+                        },
+                        onClose: function(event){ this.clear(); }
+                        });
+                    }
+
+                    if(event.target =='mybutton'){
+                        w2popup.open({
+                            title   : 'add new item information',
+                            width   : 500,
+                            height  : 400,
+                            showMax : true,
+                            modal    : true,
+                            body    : '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+                            onOpen  : function (event) {
+                                event.onComplete = function () {
+                                    var fromobj = w2ui['form{{id}}'];
+                                    fromobj.url='/data/add/{{table}}';
+                                    $('#w2ui-popup #popup{{id}}').w2render(fromobj);
+                                };
+                        },
+                        onToggle : function (event) {
+                        event.onComplete = function () { w2ui.layout.resize(); }
+                        },
+                        onClose: function(event){
+                            event.onComplete = function () {
+                                this.clear();
+                                w2ui['form{{id}}'].clear();
+                                w2ui['grid{{id}}'].reload();
+                            }
+                        }
+                    });
+                }
+
+            }
+        },
+        limit   : 15,
+        searches: [
+            { field: 'consume_date', caption: '消费月份', type: 'text' },
+            { field: 'class_name', caption: '消费类别', type: 'text' },
+        ],
+        sortData: [ { field: 'consume_date', direction: 'asc' } ],
+        columns: [
+            { field: 'recid', caption: 'ID', size: '50px',sortable: true },
+            { field: 'consume_date', caption: '消费月份', size: '10%', sortable: true, resizable: true  },
+            { field: 'class_name', caption: '类别名称', size: '20%', sortable: true, resizable: true  },
+            { field: 'fee', caption: '费用(元)', size: '10%', render: 'money', sortable: true,resizable: true  },
+            { field: 'prefee', caption: '上月费用(元)', size: '10%', render: 'money', sortable: true,resizable: true  },
+            { field: 'increase', caption: '增长率', size: '10%' , resizable: true },
+            { field: 'report_state', caption: '状态', size: '5%', render: 'text',sortable: true, resizable: true  },
+            { field: 'report_year', caption: '是否年报', size: '5%',render: 'text',sortable: true, resizable: true },
+
+        ],
+        onEdit: function (event) {
+            var record = this.get(event.recid);
+            w2popup.open({
+                title   : 'edit item information',
+                width   : 500,
+                height  : 400,
+                showMax : true,
+                modal    : true,
+                body    : '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+                onOpen  : function (event) {
+                    event.onComplete = function () {
+                        var fromobj = w2ui['form{{id}}'];
+                        fromobj.record={
+                            recid : record.recid,
+                            consume_date: record.consume_date,
+                            report_state : record.report_state,
+                            report_year : record.report_year
+                        };
+                        fromobj.url='/data/edit/{{table}}';
+                        $('#w2ui-popup #popup{{id}}').w2render(fromobj);
+                    };
+                },
+                onMax : function (event) {
+                    event.onComplete = function () {
+                        w2ui.layout.resize();
+                    }
+                },
+                onMin : function (event) {
+                    event.onComplete = function () {
+                        w2ui.layout.resize();
+                    }
+                },
+                onClose: function(event){
+                    event.onComplete = function () {
+                        this.clear();
+                        w2ui['form{{id}}'].clear();
+                        w2ui['grid{{id}}'].reload();
+                    }
+                }
+            });
+        },
+        onDeleted: function (event) {
+            w2ui['form{{id}}'].clear();
+            this.reload();
+        },
+        onDestroy: function(event) {
+        },
+        onSaved: function(event) {
+            //console.log(event);
+        }
+
+   });
+
+	
+   $().w2form({
+        name: 'form{{id}}',
+        fields: [
+            { name: 'recid', type: 'text',   html:{attr:'readonly',caption:'ID'} },
+            { name: 'consume_date', type: 'list', required: true,
+                options: {
+                    url : '/DataForm/consume_date2',
+                    items:[],
+                },html:{ caption:'报表帐期'} },
+            { name: 'report_state', type:'list',required: true,
+                options: {
+                    items:[{id:'N',text:"解锁"},{id:'Y',text:'锁定'}],
+                },html:{ caption:'报表状态'}
+            },
+            { name: 'report_year', type: 'list',
+                options: {
+                    items:[{id:'N',text:"月报"},{id:'Y',text:'年报'}],
+                } ,html:{ caption:'是否年报'}},
+
+        ],
+        actions: {
+            "save": function () {
+                    this.validate();
+                   this.save();
+                    },
+            "cancel": function () { 
+				this.clear(); 
+				$().w2popup('close'); 
+			},
+        }
+   });
+
+});
+
+</script>

@@ -1,0 +1,191 @@
+<div id="grid{{id}}" style="width: 100%; height: 100%;"></div>
+<script type="text/javascript">
+$(function (){  
+	//$.ajaxSetup ({cache:false});
+	$('#grid{{id}}').w2grid({
+        //header:'消费详单明细',
+        name: 'grid{{id}}',
+        msgDelete: 'Delete?',
+        url: {
+        	get : '/data/get/{{table}}',
+        	remove : '/data/delete/{{table}}',
+        	save : '/data/save/{{table}}'
+        },
+        show: {
+            //header      : true,
+            toolbar     : true,
+            footer      : true,
+            toolbarAdd   : true,
+			toolbarDelete: true,
+			toolbarEdit  : true,
+            lineNumbers : true,
+            selectColumn: true
+        },
+        toolbar: {
+			items: [
+				{ type: 'break' },
+				{ type: 'spacer' },
+				{ type: 'break' },
+				{ type: 'html',  id: 'create_date',
+					html: '<div style="padding: 3px 10px;">'+
+						  ' 月结时间:'+
+						  '	<input size="10" id="cheacktime"  style="padding: 3px; border-radius: 2px; border: 1px solid silver"/>'+
+						  '</div>' 
+				},
+				{ type: 'button', id: 'mybutton', caption: '消费月结数据核算', img: 'icon-page' }
+			],
+			onClick: function (target, data) {
+				var hh = $('#cheacktime').val();
+				var reg = /^[0-9]\d*$/;				
+				if(target =='mybutton'){
+					if(reg.test(hh)){
+					 $.ajax({
+				  	 type: "POST",
+				  	 url: "/checkreport/{{table}}/"+hh,
+				  	 success: function(msg){
+				     	alert( "Data Saved: " + msg );
+				   		}
+					}); 
+					}
+				  else  alert('输入不合法');
+					
+				}
+			}
+ 		},  
+        limit 	: 15,
+        searches: [
+            { field: 'consume_date', caption: '消费月份', type: 'text' },
+            { field: 'product_name', caption: '产品名称', type: 'text' },
+        ],
+        sortData: [ { field: 'recid', direction: 'desc' } ],
+        columns: [
+            { field: 'recid', caption: 'ID', size: '50px',sortable: true},
+            { field: 'consume_date', caption: '消费月份', size: '10%', sortable: true, resizable: true  },
+             { field: 'product_id', caption: '产品ID', size: '10%', sortable: true, resizable: true  },
+            { field: 'product_name', caption: '产品名称', size: '20%', sortable: true, resizable: true  },
+            { field: 'fee', caption: '费用', size: '10%', render: 'money',sortable: true, resizable: true  },
+            { field: 'unit_price', caption: '单价', size: '10%', render: 'money', resizable: true  },
+            { field: 'amount', caption: '数量', size: '10%' , resizable: true },
+            { field: 'unit_type', caption: '单位', size: '5%', resizable: true  },
+            { field: 'insert_time', caption: '入库时间', size: '15%',sortable: true, resizable: true  },
+            { field: 'remark', caption: '备注', size: '20%', resizable: true  },
+        ],
+        onAdd: function (event) {
+			w2popup.open({
+				title 	: 'add new item information',
+				width	: 500,
+				height	: 400,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.clear();
+						var aa = new Date();
+						var dat = ((aa.getMonth()+1)>9?(aa.getMonth()+1):'0'+(aa.getMonth()+1));
+						fromobj.record={
+							consume_date	: aa.getFullYear()+''+dat,					
+						};
+						fromobj.url='/data/add/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle: function (event) { 
+			        event.onComplete = function () {
+			            w2ui.layout.resize();
+			        }
+			    },
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['form{{id}}'].clear();
+						w2ui['grid{{id}}'].on('load', function(event) {
+    						console.log(event);
+						});
+					}
+				}
+			});
+					
+		},
+		onEdit: function (event) {
+			$().w2destroy('popup{{id}}');	
+			var record = this.get(event.recid);
+			
+			w2popup.open({
+				title 	: 'edit item information',
+				width	: 500,
+				height	: 400,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+					 //  console.log(fromobj.record.product_id);
+					  // w2alert(fromobj.record);
+						fromobj.record={
+							recid : record.recid,
+							consume_date	: record.consume_date,
+							fee 	: record.fee,
+							product_id:{"id":record.product_id,"text":record.product_name},
+							insert_time :record.insert_time,
+							remark 		: record.remark,                            
+						};
+                        
+						fromobj.url='/data/edit/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['form{{id}}'].clear();
+						w2ui['grid{{id}}'].reload();
+					}
+				}
+			});
+		},
+		onDeleted: function (event) {			
+			this.reload();
+		},
+		onDestroy: function(event) {
+		}
+		
+   });    
+   
+   $().w2form({
+   		name: 'form{{id}}',
+		fields: [
+			{ name: 'recid', type: 'text',   html:{attr:'readonly',caption:'ID'}  },
+			{ name: 'consume_date', type: 'text', required: true,html:{ caption:'消费帐期'} },
+			{ name: 'fee', type: 'money', required: true,html:{ caption:'消费费用'} },
+			{ name: 'product_id', type:'list',required: true,
+				options: {
+					      url : '/DataForm/proudct',
+				},
+				html:{ caption:'产品名称'}	
+			},
+			
+			{ name: 'insert_time', type: 'date' ,options: {	format: 'dd-mm-yyyy'},html:{ caption:'录入时间'} },
+			{ name: 'remark', type: 'text',html:{ caption:'消费备注'}},
+		],
+		actions: {
+			"save": function () { 
+					this.validate();
+					this.save();
+			},
+			"cancel": function () { 
+				this.clear(); 
+				$().w2popup('close'); 
+			},
+		} 
+   });
+});  
+
+</script>

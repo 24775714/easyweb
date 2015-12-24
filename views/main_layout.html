@@ -1,0 +1,63 @@
+<html>
+<head>
+    <link rel="stylesheet" type="text/css" href="/js/w2ui-1.4.3.min.css"/>
+    <script type="text/javascript" src="/js/jquery-2.1.4.min.js"></script>
+    <script type="text/javascript" src="/js/w2ui-1.4.3.min.js"></script>
+    <script type="text/javascript" src="/js/Chart.min.js"></script>
+    <script type="text/javascript" src="/js/html5media.min.js"></script>
+    <script type="text/javascript" src="/js/layout.main.js"></script>
+    <script type="text/javascript" src="/js/html5media.min.js"></script>    
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=1">
+</head>
+<body>
+<div id="layout" style="width: 100%; height: 100%;"></div>
+<div id="os_tilte" style="display: none;" >消费管理系统</div>
+</body>
+<script type="text/javascript" >
+$(function () {
+	//$('#w2ui-popup #main').destroy();
+	w2popup.open({
+	    title   : 'Login Form',
+	    width   : 400,
+	    height  : 200,
+	    //showMax : true,
+	    modal    : true,
+	    body    : '<div id="main" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+	    onOpen  : function (event) {
+	        event.onComplete = function () {
+	            $('#w2ui-popup #main').w2render('loginform');
+	        };
+	    },
+	    onToggle: function (event) { 
+	        event.onComplete = function () {
+	            w2ui.layout.resize();
+	        }
+	    }
+	});
+});
+
+//login from
+$().w2form({
+	name  : 'loginform',
+	url: '/login2',
+	msgSaving  : 'Login In Please Wait...',
+	fields: [
+		{ name: 'username', type:'text', required: true ,html:{ caption:'用户'} },
+		{ name: 'password', type:'password', required: true,html:{ caption:'密码'} },
+	],
+	actions: {
+		'login': function () {
+			this.save(function(data){
+				if (data.status == 'success') {
+			        w2ui['sidebar'].add(data.nodes);
+                    $().w2popup('close');
+                }
+			}); 
+		},
+		"cancel": function () { $().w2popup('close');}, 
+	}
+});
+
+</script>
+</html>
+

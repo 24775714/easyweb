@@ -1,0 +1,162 @@
+<div id="grid{{id}}" style="width: 100%; height: 100%;"></div>
+<script type="text/javascript">
+$(function (){  
+	//$.ajaxSetup ({cache:false});
+	$('#grid{{id}}').w2grid({
+       // header:'月结帐详单',
+        name: 'grid{{id}}',
+        msgDelete: 'Delete?',
+        url: {
+        	get : '/data/get/{{table}}',
+        	remove : '/data/delete/{{table}}',
+        	save : '/data/save/{{table}}'
+        },
+        show: {
+            //header      : true,
+            toolbar     : true,
+            footer      : true,
+            toolbarAdd   : true,
+			toolbarDelete: true,
+			toolbarEdit  : true,
+            lineNumbers : true,
+            selectColumn: true
+        },        
+        limit 	: 15,
+        searches: [
+            { field: 'consume_date', caption: '消费月份', type: 'text' },
+            { field: 'class_name', caption: '消费类别', type: 'text' },
+            { field: 'consume_state', caption: '月结', type: 'list' ,items:[{id:'N',text:"N"},{id:'Y',text:'Y'}]},
+        ],
+        sortData: [ { field: 'recid', direction: 'desc' } ],
+        columns: [
+            { field: 'recid', caption: 'ID', size: '50px',sortable: true },
+            { field: 'consume_date', caption: '消费月份', size: '10%', sortable: true, resizable: true  },
+            { field: 'class_id', caption: '类别ID', size: '10%', sortable: true, resizable: true  },
+            { field: 'class_name', caption: '类别名称', size: '20%', sortable: true, resizable: true  },
+            { field: 'sum_fee', caption: '费用(元)', size: '15%', render: 'money', sortable: true,resizable: true  },
+            { field: 'consume_state', caption: '月结', size: '5%', render: 'text',sortable: true, resizable: true  },
+            { field: 'insert_time', caption: '结算时间', size: '20%',render: 'text',sortable: true, resizable: true },
+            { field: 'remark', caption: '备注', size: '20%' , resizable: true },
+        ],
+        onAdd: function (event) {
+			w2popup.open({
+				title 	: 'add new item information',
+				width	: 500,
+				height	: 400,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.clear();
+						fromobj.url='/data/add/{{table}}';
+						var aa = new Date();
+						var dat = ((aa.getMonth()+1)>9?(aa.getMonth()+1):'0'+(aa.getMonth()+1));
+						fromobj.record={
+							consume_date	: aa.getFullYear()+''+dat,					
+						};
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['form{{id}}'].clear();
+						w2ui['grid{{id}}'].reload();
+					}
+				}
+			});
+					
+		},
+		onEdit: function (event) {
+			var record = this.get(event.recid);				
+			w2popup.open({
+				title 	: 'edit item information',
+				width	: 500,
+				height	: 400,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.record={
+							recid : record.recid,
+							consume_date	: record.consume_date,
+							class_id:{"id":record.class_id,"text":record.class_name},
+							sum_fee 	: record.sum_fee,
+							consume_state :record.consume_state,						
+							insert_time :record.insert_time,
+							remark 		: record.remark
+						};
+						fromobj.url='/data/edit/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['form{{id}}'].clear();
+						w2ui['grid{{id}}'].reload();
+					}
+				}
+			});
+		},
+		onDeleted: function (event) {	
+			w2ui['form{{id}}'].clear();		
+			this.reload();
+		},
+		onDestroy: function(event) {
+		},
+		onSaved: function(event) {
+			//console.log(event);
+		}
+		
+   });    
+   
+   $().w2form({
+   		name: 'form{{id}}',
+		fields: [
+			{ name: 'recid', type: 'text',   html:{attr:'readonly',caption:'ID'} },
+			{ name: 'consume_date', type: 'text', required: true,html:{ caption:'消费帐期'} },
+			{ name: 'class_id', type:'list',required: true,
+				options: {
+					url : '/DataForm/class_id',
+					items:[],
+				},html:{ caption:'消费类别'}	
+			},
+			{ name: 'sum_fee', type: 'money', required: true,html:{ caption:'消费总额'} },
+			{ name: 'consume_state', type:'list',required: true,
+				options: {
+					items:[{id:'N',text:"Flase"},{id:'Y',text:'True'}],
+				},html:{ caption:'结算状态'}	
+			},	
+			{ name: 'insert_time', type: 'date',required: true  ,options: {	format: 'dd-mm-yyyy'} ,html:{ caption:'入库时间'}},
+			{ name: 'remark', type: 'text',html:{ caption:'消费备注'} },
+		],
+		actions: {
+			"save": function () { 
+					this.validate();
+					this.save();
+					},
+			"cancel": function () { 
+				this.clear(); 
+				$().w2popup('close'); 
+			},
+		} 
+   });
+   
+});  
+
+</script>

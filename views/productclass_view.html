@@ -1,0 +1,129 @@
+<div id="grid{{id}}" style="width: 100%; height: 100%;"></div>
+<script type="text/javascript">
+$(function (){
+	//$.ajaxSetup ({cache:false});
+	$('#grid{{id}}').w2grid({
+        //header:'产品分类管理',
+        name: 'grid{{id}}',
+        msgDelete: 'Delete?',
+        url: {
+        	get : '/data/get/{{table}}',
+        	remove : '/data/delete/{{table}}',
+        	save : '/data/save/{{table}}'
+        },
+        show: {
+           // header      : true,
+            toolbar     : true,
+            footer      : true,
+            toolbarAdd   : true,
+			toolbarDelete: true,
+			toolbarEdit  : true,
+            lineNumbers : true,
+            selectColumn: true
+        },
+        limit 	: 15,
+        searches: [
+            { field: 'class_name', caption: '分类名称', type: 'text' },
+        ],
+        sortData: [ { field: 'recid', direction: 'asc' } ],
+        columns: [
+            { field: 'recid', caption: 'ID', size: '50px', sortable: true },
+            { field: 'class_code', caption: '分类编码', size: '30%', sortable: true , resizable: true },
+            { field: 'class_name', caption: '分类名称', size: '30%',  sortable: true , resizable: true },
+            { field: 'remark', caption: '备注', size: '40%', resizable: true  },
+        ],
+        onAdd: function (event) {
+			w2popup.open({
+				title 	: 'add new prouduct information',
+				width	: 500,
+				height	: 400,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.clear();
+						fromobj.url='/data/add/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['grid{{id}}'].reload();
+					}
+				}
+			});
+		},
+		onEdit: function (event) {	
+			var record = this.get(event.recid);
+			
+			w2popup.open({
+				title 	: 'edit item information',
+				width	: 500,
+				height	: 400,
+				showMax : true,
+				modal    : true,
+				body 	: '<div id="popup{{id}}" style="position: absolute; left: 5px; top: 5px; right: 5px; bottom: 5px;"></div>',
+				onOpen  : function (event) {
+					event.onComplete = function () {
+						var fromobj = w2ui['form{{id}}'];
+						fromobj.clear();
+						fromobj.record={
+							recid : record.recid,
+							class_code	: record.class_code,
+							class_name 	: record.class_name,
+							remark 		: record.remark
+						};
+						fromobj.url='/data/edit/{{table}}';
+						$('#w2ui-popup #popup{{id}}').w2render(fromobj);
+					};
+				},
+				onToggle : function (event) { 
+					event.onComplete = function () {
+						w2ui.layout.resize();
+					}
+				},
+				onClose: function(event){
+					event.onComplete = function () {
+						this.clear();
+						w2ui['grid{{id}}'].reload();
+					}
+				}
+			});
+		},
+		onDeleted: function (event) {			
+			this.reload();
+		},
+		onDestroy: function(event) {
+		}
+    });
+    
+    $().w2form({
+   		name: 'form{{id}}',
+		fields: [	
+			{ name: 'recid', type: 'text',  html:{attr:'readonly',caption:'ID'}  },		
+			{ name: 'class_code', type: 'text', required: true ,html:{ caption:'类别编码'}},
+			{ name: 'class_name', type: 'text', required: true,html:{ caption:'类别名称'} },
+			{ name: 'remark', type: 'text',html:{ caption:'类别备注'} },
+		],
+		actions: {
+			"save": function () { 
+					this.validate();
+					this.save();
+					},
+			"cancel": function () { 
+				this.clear(); 
+				$().w2popup('close'); 
+			},
+		} 
+   });
+});
+</script>
+
